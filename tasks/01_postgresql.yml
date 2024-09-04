@@ -1,0 +1,62 @@
+---
+
+- name: PostgreSQL Apt key
+  become: true  
+  ansible.builtin.get_url:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    dest: /etc/apt/keyrings/postgresql.asc
+
+- name: Install PostgreSQL APT repositories
+  become: true
+  ansible.builtin.apt_repository:
+    repo: deb [signed-by=/etc/apt/keyrings/postgresql.asc] http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main
+    state: present
+
+- name: Install postgresql
+  become: true
+  ansible.builtin.apt:
+    name: [postgresql, postgresql-contrib, python3-psycopg2]
+    update_cache: true
+
+- name: Start and enable services
+  become: true
+  ansible.builtin.service: 
+    name: postgresql
+    state: started
+    enabled: true
+
+- name: Create a PostgreSQL database and user
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_db:
+    name: '{{ mastodon_db }}'
+    login_unix_socket: "{{ mastodon_db_login_unix_socket }}"
+
+- name: Set PostgreSQL password for the user
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_user:
+    name: '{{ mastodon_db_user }}'
+    password: '{{ mastodon_db_password}}'
+    login_unix_socket: "{{ mastodon_db_login_unix_socket }}"
+    role_attr_flags: CREATEDB
+
+- name: GRANT ALL PRIVILEGES ON DATABASE 
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_privs:
+      db: postgres
+      privs: ALL
+      type: database
+      obj: '{{ mastodon_db }}'
+      role: '{{ mastodon_db_user }}'
+
+- name: GRANT ALL PRIVILEGES ON SCHEMA PUBLIC
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_privs:
+      db: '{{ mastodon_db }}'
+      privs: ALL
+      type: schema
+      objs: public
+      role: '{{ mastodon_db_user }}'

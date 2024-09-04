@@ -1,0 +1,70 @@
+---
+
+- name: Install nodejs
+  ansible.builtin.include_role:
+    name: nodejs
+  vars:
+    nodejs_version: 18.x
+
+- name: Add yarn Apt key
+  ansible.builtin.apt_key:
+    url: https://dl.yarnpkg.com/debian/pubkey.gpg
+    state: present
+
+- name: Install yarn APT repositories
+  become: true
+  ansible.builtin.apt_repository:
+    repo: deb https://dl.yarnpkg.com/debian/ stable main
+    state: present
+
+- name: Install yarn
+  become: true
+  ansible.builtin.apt:
+    name: [yarn]
+    update_cache: true
+
+- name: Install compile dependencies
+  become: true
+  ansible.builtin.apt:
+    name: "{{ mastodon_dependencies }}"
+
+- name: Install bundler
+  become: true
+  community.general.gem:
+    name: bundler
+    state: present
+
+- name: Install ruby-bundler
+  become: true
+  ansible.builtin.apt:
+    name: [ruby-bundler]
+
+- name: Enable corepack
+  become: true
+  ansible.builtin.shell: 
+    cmd: corepack enable
+  args:
+    chdir: "{{ mastodon_basepath }}"
+
+- name: Enable corepack
+  become: true
+  ansible.builtin.shell: 
+    cmd: corepack prepare yarn@4.4.1 --activate
+  args:
+    chdir: "{{ mastodon_basepath }}"
+
+- ansible.builtin.debug:
+    msg: "Running yarn install ... [be patient]"
+
+- name: yarn install
+  become: true
+  become_user: "{{ mastodon_user }}"
+  ansible.builtin.shell: 
+    cmd: "
+      bundle config deployment 'true' && \
+      bundle config without 'development test' && \
+      bundle install -j$(getconf _NPROCESSORS_ONLN) && \
+      yarn install
+      "
+  args:
+    chdir: "{{ mastodon_basepath }}"

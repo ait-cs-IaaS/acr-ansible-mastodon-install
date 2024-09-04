@@ -1,0 +1,21 @@
+---
+
+- ansible.builtin.debug:
+    msg: "Running mastodon setup ... [be patient]"
+
+- name: Run mastodon setup
+  become: true
+  ansible.builtin.shell: 
+    cmd: "{ {% for response in setup_responses %} echo \"{{ response }}\"; {% endfor %} } | RAILS_ENV=production bundle exec rake mastodon:setup"
+  args:
+    chdir: "{{ mastodon_basepath }}"
+  register: setup_log
+
+- name: Register admin password
+  ansible.builtin.set_fact:
+    extracted_password: "{{ setup_log.stdout_lines | select('search', 'You can login with the password: ') | map('regex_replace', '^.*password: (\\S+)$', '\\1') | first }}"
+
+- name: Write the password to {{ mastodon_basepath }}/admin_password.txt
+  become: true
+  ansible.builtin.shell: 
+    cmd: echo "{{ extracted_password }}" > {{ mastodon_basepath }}/admin_password.txt

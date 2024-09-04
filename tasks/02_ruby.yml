@@ -1,0 +1,6 @@
+---
+
+- name: Install ruby
+  become: true
+  ansible.builtin.apt:
+    name: [ruby, ruby-dev]

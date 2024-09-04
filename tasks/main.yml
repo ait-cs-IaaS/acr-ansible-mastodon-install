@@ -1,0 +1,22 @@
+---
+
+- name: '01 postgresql'
+  ansible.builtin.include_tasks: 01_postgresql.yml
+
+- name: '02 ruby'
+  ansible.builtin.include_tasks: 02_ruby.yml
+
+- name: '03 mastodon'
+  ansible.builtin.include_tasks: 03_mastodon.yml
+
+- name: '04 nodejs and yarn'
+  ansible.builtin.include_tasks: 04_yarn.yml
+
+- name: '05 setup'
+  ansible.builtin.include_tasks: 05_setup.yml
+
+- name: '06 systemd'
+  ansible.builtin.include_tasks: 06_systemd.yml
+
+- name: '07 nginx'
+  ansible.builtin.include_tasks: 07_nginx.yml

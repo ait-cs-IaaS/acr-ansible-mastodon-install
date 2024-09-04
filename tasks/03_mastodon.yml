@@ -1,0 +1,43 @@
+---
+
+- name: Create a system user-group for Mastodon
+  become: true
+  ansible.builtin.group:
+    name: mastodon
+    
+- name: Create a system user for Mastodon
+  become: true
+  ansible.builtin.user:
+    name: "{{ mastodon_user }}"
+    system: yes
+    group: mastodon
+    shell: /usr/sbin/nologin
+
+- name: Ensure git is installed
+  become: true
+  ansible.builtin.apt:
+    name: [git]
+
+- name: Ensure destination exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ mastodon_basepath }}"
+    owner: "{{ mastodon_user }}"
+    group: "{{ mastodon_user }}"
+    state: directory
+    recurse: true
+
+- name: Clone mastodon
+  become: true
+  become_user: "{{ mastodon_user }}"
+  ansible.builtin.git:
+    repo: https://github.com/tootsuite/mastodon.git
+    dest: "{{ mastodon_basepath }}"
+    accept_hostkey: true
+    single_branch: true
+    version: "{{ mastodon_version | default('main') }}"
+    recursive: false
+    force: true
+    depth: 1
+  environment:
+    GIT_TERMINAL_PROMPT: "0"

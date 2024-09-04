@@ -1,0 +1,42 @@
+---
+
+- name: Install nginx
+  become: true
+  ansible.builtin.apt:
+    name: [nginx]
+
+- name: Start and enable NGINX service
+  become: true
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Copy nginx config
+  become: true
+  ansible.builtin.template: 
+    src: templates/nginx.conf.j2
+    dest: /etc/nginx/sites-available/mastodon.conf
+  
+- name: Symlink enabled site
+  become: true
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/mastodon.conf"
+    dest: "/etc/nginx/sites-enabled/mastodon.conf"
+    state: link
+
+- name: Restart nginx
+  become: true
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+
+- name: Check if Mastodon instance is up and running
+  ansible.builtin.uri:
+    url: 'https://{{ mastodon_fqdn }}/about'
+    validate_certs: no
+  register: result
+  until: 'result.status == 200'
+  retries: 10
+  delay: 5
+  
