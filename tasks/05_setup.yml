@@ -6,7 +6,7 @@
 - name: Run mastodon setup
   become: true
   ansible.builtin.shell: 
-    cmd: "{ {% for response in setup_responses %} echo \"{{ response }}\"; {% endfor %} } | RAILS_ENV=production bundle exec rake mastodon:setup"
+    cmd: "{ {% for response in setup_responses %} echo \"{{ response }}\"; {% endfor %} } | RAILS_ENV=production DISABLE_DATABASE_ENVIRONMENT_CHECK=1 bundle exec rake mastodon:setup"
   args:
     chdir: "{{ mastodon_basepath }}"
   register: setup_log
