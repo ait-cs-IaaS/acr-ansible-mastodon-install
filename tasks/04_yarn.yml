@@ -4,7 +4,7 @@
   ansible.builtin.include_role:
     name: nodejs
   vars:
-    nodejs_version: 18.x
+    nodejs_version: "{{ mastodon_nodejs_version }}"
 
 - name: Add yarn Apt key
   ansible.builtin.apt_key:

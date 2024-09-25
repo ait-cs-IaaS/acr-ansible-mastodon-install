@@ -18,6 +18,8 @@ mastodon_smtp_auth: STARTTLS
 mastodon_smtp_port: 25
 mastodon_email_server: mail.cyberrange.at
 
+mastodon_nodejs_version: 20.x
+
 ssl_cert: /etc/ssl/cert
 ssl_key: /etc/ssl/key
 
